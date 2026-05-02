@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetAdmin Pro - 网络管理员工具</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f1117;
+    color: #e8eaf6;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #1a1d2e;
+    border-bottom: 1px solid #2a2d3e;
+    padding: 0 24px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo { font-size: 24px; }
+  .logo-text h1 { font-size: 18px; font-weight: 700; }
+  .logo-text p { font-size: 11px; color: #8892b0; }
+  .divider { width: 1px; height: 36px; background: #2a2d3e; }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #f39c12; display: inline-block;
+    box-shadow: 0 0 8px #f39c12;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; } 50% { opacity: 0.5; }
+  }
+  .status-text { font-size: 12px; color: #f39c12; margin-left: 6px; }
+  .header-right { margin-left: auto; }
+  .btn-admin {
+    background: #f39c12; color: #fff; border: none;
+    padding: 6px 14px; border-radius: 8px; font-size: 12px;
+    cursor: pointer; font-weight: 600;
+  }
+
+  /* ── Layout ── */
+  .layout { display: flex; height: calc(100vh - 58px); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 200px; background: #1a1d2e;
+    padding: 20px 10px;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-title {
+    font-size: 11px; font-weight: 700; color: #8892b0;
+    padding: 0 10px; margin-bottom: 10px; text-transform: uppercase;
+  }
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-radius: 10px;
+    font-size: 14px; cursor: pointer; color: #8892b0;
+    transition: all .2s; margin-bottom: 4px; border: none;
+    background: transparent; width: 100%; text-align: left;
+  }
+  .nav-btn:hover { background: #252840; color: #e8eaf6; }
+  .nav-btn.active { background: #4f8ef7; color: #fff; font-weight: 600; }
+  .sidebar-version {
+    margin-top: auto; font-size: 10px; color: #2a2d3e;
+    padding: 0 10px;
+  }
+
+  /* ── Content ── */
+  .content {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 16px; gap: 12px; overflow: auto;
+  }
+
+  /* ── Panel ── */
+  .panel { display: none; flex-direction: column; gap: 12px; flex: 1; }
+  .panel.active { display: flex; }
+
+  .card {
+    background: #1a1d2e;
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .section-title {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-bar {
+    width: 4px; height: 24px; border-radius: 2px;
+    background: #4f8ef7; flex-shrink: 0;
+  }
+  .section-bar.green { background: #2ecc71; }
+  .section-bar.orange { background: #f39c12; }
+  .section-bar.purple { background: #9b59b6; }
+  .section-title h2 { font-size: 15px; font-weight: 700; }
+
+  /* ── IP Config ── */
+  .ip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .form-label {
+    width: 90px; font-size: 13px; color: #8892b0; flex-shrink: 0;
+  }
+  .form-input {
+    flex: 1; background: #1e2235; border: 1px solid #2a2d3e;
+    border-radius: 8px; padding: 8px 12px; color: #e8eaf6;
+    font-size: 13px; outline: none; transition: border-color .2s;
+  }
+  .form-input:focus { border-color: #4f8ef7; }
+  .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    font-size: 13px; cursor: pointer; font-weight: 600; transition: opacity .2s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn-blue { background: #4f8ef7; color: #fff; }
+  .btn-green { background: #2ecc71; color: #fff; }
+  .btn-secondary { background: #1e2235; color: #8892b0; }
+  .btn-orange { background: #f39c12; color: #fff; }
+  .btn-red { background: #e74c3c; color: #fff; }
+  .btn-purple { background: #9b59b6; color: #fff; }
+  .btn-sm { padding: 5px 12px; font-size: 11px; border-radius: 6px; }
+
+  /* Profile cards */
+  .profile-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .profile-card {
+    background: #1e2235; border-radius: 12px; padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .profile-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .profile-info { font-size: 11px; color: #8892b0; }
+
+  /* Net info */
+  .net-info-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+  .info-card {
+    background: #1e2235; border-radius: 12px; padding: 14px;
+    text-align: center;
+  }
+  .info-icon-title { font-size: 11px; color: #8892b0; margin-bottom: 6px; }
+  .info-value { font-size: 14px; font-weight: 700; color: #e8eaf6; }
+
+  /* ── Packages ── */
+  .pkg-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .pkg-card {
+    background: #1e2235; border-radius: 14px; padding: 16px;
+    position: relative;
+  }
+  .pkg-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .pkg-icon { font-size: 28px; }
+  .pkg-checkbox {
+    width: 20px; height: 20px; border-radius: 4px;
+    border: 2px solid #4f8ef7; cursor: pointer;
+  }
+  .pkg-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .pkg-desc { font-size: 11px; color: #8892b0; margin-bottom: 8px; }
+  .pkg-path { font-size: 10px; color: #555d7e; margin-bottom: 10px; }
+  .pkg-actions { display: flex; gap: 6px; }
+
+  /* Progress bar */
+  .progress-wrap { background: #1e2235; height: 8px; border-radius: 4px; margin: 10px 0 6px; overflow: hidden; }
+  .progress-bar {
+    height: 100%; border-radius: 4px; background: #2ecc71;
+    transition: width .4s;
+  }
+  .progress-text { font-size: 12px; color: #8892b0; }
+
+  /* ── Ping panel ── */
+  .ping-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .quick-btns { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .quick-btn {
+    background: #1e2235; color: #8892b0; border: none;
+    padding: 5px 12px; border-radius: 6px; font-size: 11px; cursor: pointer;
+  }
+  .quick-btn:hover { background: #252840; color: #e8eaf6; }
+  .result-box {
+    background: #1e2235; border-radius: 10px; padding: 14px;
+    font-family: Consolas, monospace; font-size: 12px; color: #a0aec0;
+    height: 200px; overflow-y: auto; white-space: pre-wrap;
+    line-height: 1.7;
+  }
+
+  /* ── Log box ── */
+  .log-box {
+    background: #1a1d2e; border-radius: 10px; padding: 12px 16px;
+    font-family: Consolas, monospace; font-size: 11px;
+    color: #8892b0; height: 110px; overflow-y: auto; flex-shrink: 0;
+    line-height: 1.8;
+  }
+  .log-success { color: #2ecc71; }
+  .log-warning { color: #f39c12; }
+  .log-error { color: #e74c3c; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2d3e; border-radius: 3px; }
+
+  select.form-input { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">🛡</div>
+  <div class="logo-text">
+    <h1>NetAdmin Pro</h1>
+    <p>网络管理员工具</p>
+  </div>
+  <div class="divider"></div>
+  <span class="status-dot"></span>
+  <span class="status-text">⚠ 非管理员模式 (IP配置功能受限)</span>
+  <div class="header-right">
+    <button class="btn-admin">🔓 提升权限</button>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-title">功能菜单</div>
+    <button class="nav-btn active" onclick="switchTab(0,this)">🖥&nbsp; IP 配置</button>
+    <button class="nav-btn" onclick="switchTab(1,this)">📦&nbsp; 软件安装</button>
+    <button class="nav-btn" onclick="switchTab(2,this)">🔍&nbsp; 网络检测</button>
+    <div class="sidebar-version">v1.0.0 &nbsp;NetAdmin Pro</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ═══ Tab 0: IP Config ═══ -->
+    <div class="panel active" id="tab0">
+      <div class="ip-grid" style="flex:1;min-height:0">
+
+        <!-- 手动配置 -->
+        <div class="card">
+          <div class="section-title">
+            <div class="section-bar"></div>
+            <h2>🖥 手动配置 IP</h2>
+          </div>
+
+          <div class="form-row">
+            <span class="form-label">网络适配器</span>
+            <select class="form-input">
+              <option>以太网</option>
+              <option>WLAN</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <span class="form-label">IP 地址</span>
+            <input class="form-input" value="192.168.1.100" placeholder="192.168.1.100">
+          </div>
+          <div class="form-row">
+            <span class="form-label">子网掩码</span>
+            <input class="form-input" value="255.255.255.0">
+          </div>
+          <div class="form-row">
+            <span class="form-label">默认网关</span>
+            <input class="form-input" value="192.168.1.1">
+          </div>
+          <div class="form-row">
+            <span class="form-label">首选 DNS</span>
+            <input class="form-input" value="114.114.114.114">
+          </div>
+          <div class="form-row">
+            <span class="form-label">备用 DNS</span>
+            <input class="form-input" value="8.8.8.8">
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-secondary">📋 读取当前</button>
+            <button class="btn btn-blue">✅ 应用配置</button>
+            <button class="btn btn-green">🔄 自动获取</button>
+          </div>
+        </div>
+
+        <!-- 预设方案 -->
+        <div class="card" style="display:flex;flex-direction:column">
+          <div class="section-title" style="justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="section-bar purple"></div>
+              <h2>⚡ 预设配置方案</h2>
+            </div>
+            <button class="btn btn-purple btn-sm">＋ 添加方案</button>
+          </div>
+
+          <div class="profile-list">
+            <div class="profile-card">
+              <div>
+                <div class="profile-name">办公区 A 区</div>
+                <div class="profile-info">192.168.1.100 / 255.255.255.0 / GW: 192.168.1.1 / DNS: 114.114.114.114</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-blue btn-sm">应用</button>
+                <button class="btn btn-red btn-sm">删除</button>
+              </div>
+            </div>
+            <div class="profile-card">
+              <div>
+                <div class="profile-name">办公区 B 区</div>
+                <div class="profile-info">192.168.2.100 / 255.255.255.0 / GW: 192.168.2.1 / DNS: 114.114.114.114</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-blue btn-sm">应用</button>
+                <button class="btn btn-red btn-sm">删除</button>
+              </div>
+            </div>
+            <div class="profile-card">
+              <div>
+                <div class="profile-name">服务器区</div>
+                <div class="profile-info">10.0.0.100 / 255.255.255.0 / GW: 10.0.0.1 / DNS: 114.114.114.114</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-blue btn-sm">应用</button>
+                <button class="btn btn-red btn-sm">删除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 网络信息 -->
+      <div class="card">
+        <div class="section-title" style="margin-bottom:12px">
+          <div class="section-bar orange"></div>
+          <h2>📊 本机网络信息</h2>
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto">🔍 刷新</button>
+        </div>
+        <div class="net-info-grid">
+          <div class="info-card">
+            <div class="info-icon-title">💻 主机名</div>
+            <div class="info-value">DESKTOP-ABC123</div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon-title">🌐 本机IP</div>
+            <div class="info-value">192.168.1.100</div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon-title">🔗 MAC地址</div>
+            <div class="info-value">A8-93-4A-12-BC-EF</div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon-title">🚀 网关</div>
+            <div class="info-value">192.168.1.1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Tab 1: Install ═══ -->
+    <div class="panel" id="tab1">
+      <!-- 工具栏 -->
+      <div class="card" style="padding:14px 20px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div class="section-title" style="margin:0">
+            <div class="section-bar"></div>
+            <h2>📦 软件安装管理</h2>
+          </div>
+          <button class="btn btn-purple" style="margin-left:8px">＋ 添加软件</button>
+          <input class="form-input" placeholder="🔍  搜索软件..." style="flex:1;min-width:140px;height:36px">
+          <button class="btn btn-secondary btn-sm">☑ 全选</button>
+          <button class="btn btn-secondary btn-sm">☐ 取消</button>
+          <button class="btn btn-green">▶ 安装选中</button>
+        </div>
+      </div>
+
+      <!-- 软件卡片 -->
+      <div class="card" style="flex:1;overflow:auto">
+        <div class="pkg-grid">
+          <div class="pkg-card">
+            <div class="pkg-header">
+              <span class="pkg-icon">🌐</span>
+              <div class="pkg-checkbox"></div>
+            </div>
+            <div class="pkg-name">Chrome 浏览器</div>
+            <div class="pkg-desc">Google Chrome 浏览器最新版</div>
+            <div class="pkg-path">📂 ...C:\Installers\ChromeSetup.exe</div>
+            <div class="pkg-actions">
+              <button class="btn btn-blue" style="flex:1;padding:7px">立即安装</button>
+              <button class="btn btn-red btn-sm">删除</button>
+            </div>
+          </div>
+          <div class="pkg-card">
+            <div class="pkg-header">
+              <span class="pkg-icon">💬</span>
+              <div class="pkg-checkbox" style="background:#4f8ef7;border-color:#4f8ef7"></div>
+            </div>
+            <div class="pkg-name">微信</div>
+            <div class="pkg-desc">微信 PC 客户端</div>
+            <div class="pkg-path">📂 ...C:\Installers\WeChatSetup.exe</div>
+            <div class="pkg-actions">
+              <button class="btn btn-blue" style="flex:1;padding:7px">立即安装</button>
+              <button class="btn btn-red btn-sm">删除</button>
+            </div>
+          </div>
+          <div class="pkg-card">
+            <div class="pkg-header">
+              <span class="pkg-icon">📄</span>
+              <div class="pkg-checkbox"></div>
+            </div>
+            <div class="pkg-name">Office 2021</div>
+            <div class="pkg-desc">Microsoft Office 2021 专业版</div>
+            <div class="pkg-path">📂 ...C:\Installers\OfficeSetup.exe</div>
+            <div class="pkg-actions">
+              <button class="btn btn-blue" style="flex:1;padding:7px">立即安装</button>
+              <button class="btn btn-red btn-sm">删除</button>
+            </div>
+          </div>
+          <div class="pkg-card">
+            <div class="pkg-header">
+              <span class="pkg-icon">🏢</span>
+              <div class="pkg-checkbox"></div>
+            </div>
+            <div class="pkg-name">企业微信</div>
+            <div class="pkg-desc">企业微信 PC 客户端</div>
+            <div class="pkg-path">📂 ...C:\Installers\WXWorkSetup.exe</div>
+            <div class="pkg-actions">
+              <button class="btn btn-blue" style="flex:1;padding:7px">立即安装</button>
+              <button class="btn btn-red btn-sm">删除</button>
+            </div>
+          </div>
+          <div class="pkg-card">
+            <div class="pkg-header">
+              <span class="pkg-icon">⚡</span>
+              <div class="pkg-checkbox"></div>
+            </div>
+            <div class="pkg-name">迅雷</div>
+            <div class="pkg-desc">迅雷下载工具</div>
+            <div class="pkg-path">📂 ...C:\Installers\ThunderSetup.exe</div>
+            <div class="pkg-actions">
+              <button class="btn btn-blue" style="flex:1;padding:7px">立即安装</button>
+              <button class="btn btn-red btn-sm">删除</button>
+            </div>
+          </div>
+          <div class="pkg-card">
+            <div class="pkg-header">
+              <span class="pkg-icon">📦</span>
+              <div class="pkg-checkbox"></div>
+            </div>
+            <div class="pkg-name">7-Zip</div>
+            <div class="pkg-desc">7-Zip 压缩解压工具</div>
+            <div class="pkg-path">📂 ...C:\Installers\7zSetup.exe</div>
+            <div class="pkg-actions">
+              <button class="btn btn-blue" style="flex:1;padding:7px">立即安装</button>
+              <button class="btn btn-red btn-sm">删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 进度 -->
+      <div class="card" style="padding:16px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="section-bar green"></div>
+            <strong>⚙ 安装进度</strong>
+          </div>
+          <button class="btn btn-secondary btn-sm">清空日志</button>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="pkgProgress" style="width:0%"></div>
+        </div>
+        <div class="progress-text" id="pkgStatus">就绪</div>
+      </div>
+    </div>
+
+    <!-- ═══ Tab 2: Ping ═══ -->
+    <div class="panel" id="tab2">
+      <div class="card">
+        <div class="section-title">
+          <div class="section-bar"></div>
+          <h2>🔍 网络连通性检测</h2>
+        </div>
+        <div class="ping-row">
+          <span style="color:#8892b0;font-size:13px;flex-shrink:0">目标地址</span>
+          <input class="form-input" id="pingHost" placeholder="输入IP或域名，如 8.8.8.8" style="flex:1">
+          <span style="color:#8892b0;font-size:13px;flex-shrink:0">次数</span>
+          <input class="form-input" id="pingCount" value="4" style="width:70px">
+          <button class="btn btn-blue" onclick="doPing()">▶ Ping</button>
+          <button class="btn btn-orange" onclick="doTracert()">路由追踪</button>
+        </div>
+        <div class="quick-btns">
+          <span style="font-size:12px;color:#8892b0">快速检测:</span>
+          <button class="quick-btn" onclick="quickPing('114.114.114.114')">114.114.114.114</button>
+          <button class="quick-btn" onclick="quickPing('8.8.8.8')">8.8.8.8</button>
+          <button class="quick-btn" onclick="quickPing('www.baidu.com')">www.baidu.com</button>
+          <button class="quick-btn" onclick="quickPing('www.qq.com')">www.qq.com</button>
+        </div>
+      </div>
+
+      <div class="card" style="flex:1;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="section-bar orange"></div>
+            <strong>📋 检测结果</strong>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="clearResult()">清空</button>
+        </div>
+        <div class="result-box" id="pingResult">
+正在等待操作...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="margin-bottom:10px">
+          <div class="section-bar purple"></div>
+          <h2>🔌 端口连通检测</h2>
+        </div>
+        <div class="ping-row">
+          <span style="color:#8892b0;font-size:13px;flex-shrink:0">主机</span>
+          <input class="form-input" placeholder="192.168.1.1" style="flex:1">
+          <span style="color:#8892b0;font-size:13px;flex-shrink:0">端口</span>
+          <input class="form-input" placeholder="80" style="width:80px">
+          <button class="btn btn-purple">检测</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 全局日志 ─── -->
+    <div class="log-box" id="logBox">
+<span class="log-success">14:18:30  [SUCCESS]   NetAdmin Pro 已启动，欢迎使用！</span>
+<span class="log-warning">14:18:30  [WARNING]   当前非管理员模式，IP配置功能需要管理员权限</span>
+<span style="color:#8892b0">14:18:31  [INFO]      已读取 [以太网] 当前配置</span>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end layout -->
+
+<script>
+function switchTab(idx, btn) {
+  document.querySelectorAll('.panel').forEach((p,i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.nav-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === idx);
+  });
+}
+
+function appendLog(msg, level='INFO') {
+  const box = document.getElementById('logBox');
+  const ts = new Date().toTimeString().slice(0,8);
+  const colorMap = {SUCCESS:'log-success', WARNING:'log-warning', ERROR:'log-error'};
+  const cls = colorMap[level] || '';
+  const el = document.createElement('span');
+  if(cls) el.className = cls;
+  el.textContent = `${ts}  [${level.padEnd(8)}]  ${msg}`;
+  box.appendChild(document.createElement('br'));
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+
+function appendResult(text) {
+  const box = document.getElementById('pingResult');
+  box.textContent += '\n' + text;
+  box.scrollTop = box.scrollHeight;
+}
+
+function clearResult() {
+  document.getElementById('pingResult').textContent = '';
+}
+
+function quickPing(host) {
+  document.getElementById('pingHost').value = host;
+  doPing();
+}
+
+function doPing() {
+  const host = document.getElementById('pingHost').value.trim();
+  const count = document.getElementById('pingCount').value.trim() || '4';
+  if(!host) { alert('请输入目标地址！'); return; }
+  appendLog(`Ping ${host} (x${count})`, 'INFO');
+  appendResult(`\n${'='.repeat(50)}\n  Ping ${host}  (发送${count}个包)\n${'='.repeat(50)}`);
+  // 模拟延迟输出
+  const times = [12, 14, 11, 13];
+  let i = 0;
+  const iv = setInterval(() => {
+    if(i < 4) {
+      appendResult(`来自 ${host} 的回复: 字节=32 时间=${times[i%4]}ms TTL=55`);
+      i++;
+    } else {
+      appendResult(`\n${host} 的 Ping 统计信息:\n  数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)`);
+      appendLog(`Ping ${host} 成功`, 'SUCCESS');
+      clearInterval(iv);
+    }
+  }, 300);
+}
+
+function doTracert() {
+  const host = document.getElementById('pingHost').value.trim();
+  if(!host) { alert('请输入目标地址！'); return; }
+  appendLog(`路由追踪: ${host}`, 'INFO');
+  appendResult(`\n${'='.repeat(50)}\n  Tracert ${host}\n${'='.repeat(50)}`);
+  const hops = [
+    '1    1 ms    1 ms    1 ms  192.168.1.1',
+    '2   10 ms    9 ms   11 ms  10.0.0.1',
+    '3   15 ms   14 ms   16 ms  202.97.51.1',
+    '4   20 ms   19 ms   21 ms  61.182.176.1',
+    '5   25 ms   24 ms   26 ms  ' + host,
+  ];
+  let i = 0;
+  const iv = setInterval(() => {
+    if(i < hops.length) {
+      appendResult(hops[i++]);
+    } else {
+      appendResult('\n跟踪完成。');
+      clearInterval(iv);
+    }
+  }, 400);
+}
+
+// 进度演示
+let progDemo = 0;
+function startProgressDemo() {
+  const bar = document.getElementById('pkgProgress');
+  const status = document.getElementById('pkgStatus');
+  const steps = [
+    [15, '正在安装 Chrome 浏览器... (1/2)'],
+    [50, '正在安装 微信... (2/2)'],
+    [100, '完成，共处理 2 个软件包'],
+  ];
+  let i = 0;
+  const iv = setInterval(() => {
+    if(i < steps.length) {
+      bar.style.width = steps[i][0] + '%';
+      status.textContent = steps[i][1];
+      appendLog(steps[i][1], i===steps.length-1 ? 'SUCCESS' : 'INFO');
+      i++;
+    } else {
+      clearInterval(iv);
+    }
+  }, 1200);
+}
+</script>
+</body>
+</html>

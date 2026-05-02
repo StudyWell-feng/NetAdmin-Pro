@@ -1,0 +1,88 @@
+{
+  "packages": [
+    {
+      "name": "Chrome 浏览器",
+      "icon": "🌐",
+      "path": "C:\\Installers\\ChromeSetup.exe",
+      "args": "/silent /install",
+      "description": "Google Chrome 浏览器最新版"
+    },
+    {
+      "name": "微信",
+      "icon": "💬",
+      "path": "C:\\Installers\\WeChatSetup.exe",
+      "args": "",
+      "description": "微信 PC 客户端"
+    },
+    {
+      "name": "Office 2021",
+      "icon": "📄",
+      "path": "C:\\Installers\\OfficeSetup.exe",
+      "args": "/quiet",
+      "description": "Microsoft Office 2021 专业版"
+    },
+    {
+      "name": "企业微信",
+      "icon": "🏢",
+      "path": "C:\\Installers\\WXWorkSetup.exe",
+      "args": "",
+      "description": "企业微信 PC 客户端"
+    },
+    {
+      "name": "迅雷",
+      "icon": "⚡",
+      "path": "C:\\Installers\\ThunderSetup.exe",
+      "args": "",
+      "description": "迅雷下载工具"
+    },
+    {
+      "name": "7-Zip",
+      "icon": "📦",
+      "path": "C:\\Installers\\7zSetup.exe",
+      "args": "/S",
+      "description": "7-Zip 压缩解压工具"
+    }
+  ],
+  "ip_profiles": [
+    {
+      "name": "办公区 A 区",
+      "ip": "192.168.1.100",
+      "mask": "255.255.255.0",
+      "gateway": "192.168.1.1",
+      "dns1": "114.114.114.114",
+      "dns2": "8.8.8.8"
+    },
+    {
+      "name": "办公区 B 区",
+      "ip": "192.168.2.100",
+      "mask": "255.255.255.0",
+      "gateway": "192.168.2.1",
+      "dns1": "114.114.114.114",
+      "dns2": "8.8.8.8"
+    },
+    {
+      "name": "服务器区",
+      "ip": "10.0.0.100",
+      "mask": "255.255.255.0",
+      "gateway": "10.0.0.1",
+      "dns1": "114.114.114.114",
+      "dns2": "8.8.8.8"
+    }
+  ],
+  "proxy_profiles": [
+    {
+      "name": "公司代理",
+      "http_addr": "192.168.1.200",
+      "http_port": "8080",
+      "https_addr": "192.168.1.200",
+      "https_port": "8080",
+      "bypass": "localhost;127.0.0.1;<local>"
+    },
+    {
+      "name": "SOCKS5 代理",
+      "socks_addr": "127.0.0.1",
+      "socks_port": "1080",
+      "bypass": "localhost;127.0.0.1;<local>"
+    }
+  ]
+}
