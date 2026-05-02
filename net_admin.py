@@ -9,6 +9,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox, filedialog
 import json
+import webbrowser
 import os
 import sys
 import subprocess
@@ -37,18 +38,28 @@ else:
     _FONT_FAMILY = "Noto Sans CJK SC"  # Linux 常见中文字体
 
 # ─── 配置文件路径 ─────────────────────────────────────────────────────────────
-# PyInstaller 打包后 __file__ 指向临时目录，配置文件应该放在 EXE 同目录以便持久化
+# 配置保存在 EXE 同目录，设为隐藏文件，用户无感知
 if getattr(sys, 'frozen', False):
     BASE_DIR = Path(sys.executable).parent
 else:
     BASE_DIR = Path(__file__).parent
 CONFIG_FILE = BASE_DIR / "config.json"
-# 如果 EXE 同目录没有 config.json，从内置资源复制一份
-if getattr(sys, 'frozen', False) and not CONFIG_FILE.exists():
-    _bundled = Path(sys._MEIPASS) / "config.json"
-    if _bundled.exists():
-        import shutil
-        shutil.copy2(str(_bundled), str(CONFIG_FILE))
+
+# ─── 字体清理（退出时释放注册的字体，消除 PyInstaller 临时目录警告） ─────────
+_FONT_CLEANUP_PATH = None
+_FONT_CLEANUP_REGISTERED = False
+
+def _cleanup_font():
+    """程序退出时释放注册的字体，避免 PyInstaller 清理警告"""
+    global _FONT_CLEANUP_PATH
+    if _FONT_CLEANUP_PATH:
+        try:
+            import ctypes
+            ctypes.windll.gdi32.RemoveFontResourceW(_FONT_CLEANUP_PATH)
+            ctypes.windll.user32.SendNotifyMessageW(0xFFFF, 0x001D, 0, 0)
+        except:
+            pass
+        _FONT_CLEANUP_PATH = None
 
 # ─── 颜色常量 ─────────────────────────────────────────────────────────────────
 COLORS = {
@@ -91,8 +102,19 @@ def load_config():
 
 def save_config(config):
     """保存配置文件"""
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(config, f, ensure_ascii=False, indent=2)
+    try:
+        # 写入前确认目录可写
+        _dir = CONFIG_FILE.parent
+        if not _dir.exists():
+            _dir.mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        try:
+            from tkinter import messagebox as _mb
+            _mb.showerror("保存失败", f"无法保存配置文件:\n{CONFIG_FILE}\n\n错误: {e}")
+        except:
+            pass
 
 # ─── 代理配置相关函数 ────────────────────────────────────────────────────────
 def get_proxy_settings():
@@ -367,6 +389,7 @@ class IPConfigPanel(ctk.CTkFrame):
         self.adapter_combo = ctk.CTkComboBox(adp_frame, values=self.adapters,
                                              variable=self.adapter_var,
                                              font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
+                                             dropdown_font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                                              command=self._on_adapter_change)
         if self.adapters:
             self.adapter_var.set(self.adapters[0])
@@ -949,7 +972,7 @@ class PingPanel(ctk.CTkFrame):
                       font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=self._clear_result).grid(row=0, column=1, sticky="e")
 
-        self.result_box = ctk.CTkTextbox(result_card, font=ctk.CTkFont(family="Consolas", size=12),
+        self.result_box = ctk.CTkTextbox(result_card, font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                                           fg_color=COLORS["bg_card2"], text_color=COLORS["text_primary"],
                                           state="disabled")
         self.result_box.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="nsew")
@@ -1458,7 +1481,7 @@ class ProfileDialog(BaseDialog):
                       fg_color=COLORS["bg_card2"], command=self.destroy).pack(side="left", padx=8)
         ctk.CTkButton(btn_row, text="✅ 保存", width=100, height=36,
                       fg_color=COLORS["accent_blue"],
-                      font=ctk.CTkFont(weight="bold"),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, weight="bold"),
                       command=self._save).pack(side="left", padx=8)
 
     def _save(self):
@@ -1518,7 +1541,7 @@ class PackageDialog(BaseDialog):
                       fg_color=COLORS["bg_card2"], command=self.destroy).pack(side="left", padx=8)
         ctk.CTkButton(btn_row, text="✅ 保存", width=100, height=36,
                       fg_color=COLORS["accent_blue"],
-                      font=ctk.CTkFont(weight="bold"),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, weight="bold"),
                       command=self._save).pack(side="left", padx=8)
 
     def _browse(self):
@@ -1648,7 +1671,7 @@ class ProxyProfileDialog(BaseDialog):
                       command=self.destroy).pack(side="left", padx=8)
         ctk.CTkButton(btn_row, text="✅ 保存", width=100, height=36,
                       fg_color=COLORS["accent_blue"],
-                      font=ctk.CTkFont(weight="bold"),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, weight="bold"),
                       command=self._save).pack(side="left", padx=8)
 
     def _save(self):
@@ -1978,7 +2001,11 @@ class NetAdminApp(ctk.CTk):
         self.configure(fg_color=COLORS["bg_dark"])
 
         # 设置图标（如果存在）
-        icon_path = BASE_DIR / "icon.ico"
+        if getattr(sys, 'frozen', False):
+            _icon_base = Path(sys._MEIPASS)
+        else:
+            _icon_base = BASE_DIR
+        icon_path = _icon_base / "icon.ico"
         if icon_path.exists():
             try:
                 self.iconbitmap(str(icon_path))
@@ -1989,20 +2016,61 @@ class NetAdminApp(ctk.CTk):
         self._check_admin()
 
     def _setup_fonts(self):
-        """全局设置字体，确保跨机器中文显示正常"""
+        """全局设置字体，确保跨机器中文显示正常。
+        优先使用打包内的 simhei.ttf，失败时降级到系统字体检测。"""
+        import os, ctypes
+        global _FONT_FAMILY
+
+        # ── 1. 尝试加载打包内的 simhei.ttf ──
+        if getattr(sys, 'frozen', False):
+            _base = sys._MEIPASS
+        else:
+            _base = os.path.dirname(os.path.abspath(__file__))
+        _font_path = os.path.join(_base, "simhei.ttf")
+
+        if os.path.exists(_font_path):
+            try:
+                if ctypes.windll.gdi32.AddFontResourceW(_font_path) > 0:
+                    ctypes.windll.user32.SendNotifyMessageW(0xFFFF, 0x001D, 0, 0)
+                    _FONT_FAMILY = "黑体"
+                    # 注册退出时释放字体，避免 PyInstaller 清理警告
+                    global _FONT_CLEANUP_PATH, _FONT_CLEANUP_REGISTERED
+                    _FONT_CLEANUP_PATH = _font_path
+                    if not _FONT_CLEANUP_REGISTERED:
+                        import atexit
+                        atexit.register(_cleanup_font)
+                        _FONT_CLEANUP_REGISTERED = True
+                    # 设置 ttk 全局字体（影响 CTkComboBox 下拉列表）
+                    try:
+                        import tkinter.ttk as ttk
+                        s = ttk.Style()
+                        s.configure(".", font=(_FONT_FAMILY, 10))
+                    except Exception:
+                        pass
+                    return
+            except Exception:
+                pass
+
+        # ── 2. 降级：检测系统可用中文字体 ──
         import tkinter.font as tkfont
-        _families = ("Microsoft YaHei", "微软雅黑", "SimHei", "PingFang SC",
-                      "Segoe UI", "Noto Sans CJK SC",
-                      "WenQuanYi Micro Hei", "Arial")
+        _families = ("Microsoft YaHei", "微软雅黑", "SimHei", "黑体",
+                     "PingFang SC", "Segoe UI", "Noto Sans CJK SC",
+                     "WenQuanYi Micro Hei", "Arial")
         _available = tkfont.families()
         _chosen = "Arial"
         for _f in _families:
             if _f in _available:
                 _chosen = _f
                 break
-        # 更新模块级字体常量
-        global _FONT_FAMILY
         _FONT_FAMILY = _chosen
+        # 设置 ttk 全局字体
+        try:
+            import tkinter.ttk as ttk
+            s = ttk.Style()
+            s.configure(".", font=(_chosen, 10))
+        except Exception:
+            pass
+
 
     def _check_admin(self):
         if not is_admin():
@@ -2104,10 +2172,19 @@ class NetAdminApp(ctk.CTk):
             btn.pack(padx=10, pady=3)
             self.nav_buttons.append(btn)
 
-        # 底部版本信息
-        ctk.CTkLabel(nav, text="v1.0.0  NetAdmin Pro",
+        # 底部版本信息 + 版权声明
+        footer = ctk.CTkFrame(nav, fg_color="transparent")
+        footer.pack(side="bottom", fill="x", pady=16)
+
+        ctk.CTkLabel(footer, text="v1.0.0  NetAdmin Pro",
                      font=ctk.CTkFont(family=_FONT_FAMILY, size=10), text_color=COLORS["border"]
-                     ).pack(side="bottom", pady=16)
+                     ).pack()
+
+        copyright_lbl = ctk.CTkLabel(footer, text="© StudyFeng",
+                                        font=ctk.CTkFont(family=_FONT_FAMILY, size=10),
+                                        text_color="#4f8ef7", cursor="hand2")
+        copyright_lbl.pack(pady=(4, 0))
+        copyright_lbl.bind("<Button-1>", lambda e: webbrowser.open("https://github.com/StudyWell-feng/StudyWell-feng"))
 
         # ── 右侧内容区 ──
         content = ctk.CTkFrame(main, fg_color=COLORS["bg_dark"], corner_radius=0)
@@ -2117,7 +2194,7 @@ class NetAdminApp(ctk.CTk):
 
         # 全局日志框（底部）
         self.log_box = LogBox(content, height=130, state="disabled",
-                              font=ctk.CTkFont(family="Consolas", size=11),
+                              font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                               fg_color=COLORS["bg_card"],
                               text_color=COLORS["text_secondary"],
                               border_width=0)
