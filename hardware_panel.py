@@ -8,6 +8,16 @@ import subprocess
 import threading
 import tkinter as tk
 import customtkinter as ctk
+import platform as _platform
+
+# 字体常量（与 net_admin.py 保持一致）
+_sys = _platform.system()
+if _sys == "Windows":
+    _FONT_FAMILY = "Microsoft YaHei"
+elif _sys == "Darwin":
+    _FONT_FAMILY = "PingFang SC"
+else:
+    _FONT_FAMILY = "Noto Sans CJK SC"
 
 # 颜色常量（与 net_admin.py 保持一致）
 COLORS = {
@@ -52,13 +62,13 @@ class HardwarePanel(ctk.CTkFrame):
 
         ctk.CTkLabel(
             hdr, text="🖥  硬件信息检测",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            font=ctk.CTkFont(family=_FONT_FAMILY, size=18, weight="bold"),
             text_color=COLORS["text_primary"],
         ).grid(row=0, column=0, padx=20, pady=14, sticky="w")
 
         ctk.CTkButton(
             hdr, text="🔄  刷新检测", width=130, height=36,
-            font=ctk.CTkFont(size=13, weight="bold"),
+            font=ctk.CTkFont(family=_FONT_FAMILY, size=13, weight="bold"),
             fg_color=COLORS["accent_purple"],
             hover_color="#7d3cbb",
             command=self._load_info,
@@ -120,7 +130,7 @@ class HardwarePanel(ctk.CTkFrame):
             self.inner,
             text="⏳  正在检测硬件信息，请稍候...\n\n"
                  "将读取  CPU / GPU / 内存 / 硬盘 / 主板 信息",
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
             text_color=COLORS["text_secondary"],
         )
         self._ph.grid(row=0, column=0, pady=60)
@@ -412,12 +422,12 @@ class HardwarePanel(ctk.CTkFrame):
         f = ctk.CTkFrame(parent, fg_color="transparent")
         f.grid(row=0, column=col, padx=16, pady=16, sticky="nsew")
         ctk.CTkLabel(
-            f, text=title, font=ctk.CTkFont(size=11),
+            f, text=title, font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
             text_color=COLORS["text_secondary"],
         ).pack(anchor="w", pady=(0, 4))
         ctk.CTkLabel(
             f, text=value,
-            font=ctk.CTkFont(size=22, weight="bold"),
+            font=ctk.CTkFont(family=_FONT_FAMILY, size=22, weight="bold"),
             text_color=color,
         ).pack(anchor="w")
 
@@ -498,7 +508,7 @@ class HardwarePanel(ctk.CTkFrame):
         card.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(
             card, text=title,
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=ctk.CTkFont(family=_FONT_FAMILY, size=15, weight="bold"),
             text_color=title_color,
         ).grid(row=0, column=0, columnspan=2,
                padx=20, pady=(14, 8), sticky="w")
@@ -516,13 +526,13 @@ class HardwarePanel(ctk.CTkFrame):
             row_bg.grid_columnconfigure(1, weight=1)
             ctk.CTkLabel(
                 row_bg, text=f"{key}：",
-                font=ctk.CTkFont(size=12),
+                font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                 text_color=COLORS["text_secondary"],
             ).grid(row=0, column=0, padx=(12, 6), pady=7, sticky="w")
             val_color = HardwarePanel._temp_color(val)
             ctk.CTkLabel(
                 row_bg, text=str(val),
-                font=ctk.CTkFont(size=12, weight="bold"),
+                font=ctk.CTkFont(family=_FONT_FAMILY, size=12, weight="bold"),
                 text_color=val_color,
             ).grid(row=0, column=1, padx=(0, 12), pady=7, sticky="w")
 

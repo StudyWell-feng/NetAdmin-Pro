@@ -26,6 +26,16 @@ from hardware_panel import HardwarePanel
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+# ─── 全局字体设置（确保跨机器中文显示一致） ────────────────────────────────────
+import platform as _platform
+_sys = _platform.system()
+if _sys == "Windows":
+    _FONT_FAMILY = "Microsoft YaHei"   # 微软雅黑，Windows 7+ 自带
+elif _sys == "Darwin":
+    _FONT_FAMILY = "PingFang SC"       # 苹方，macOS 自带
+else:
+    _FONT_FAMILY = "Noto Sans CJK SC"  # Linux 常见中文字体
+
 # ─── 配置文件路径 ─────────────────────────────────────────────────────────────
 # PyInstaller 打包后 __file__ 指向临时目录，配置文件应该放在 EXE 同目录以便持久化
 if getattr(sys, 'frozen', False):
@@ -298,7 +308,7 @@ class SectionTitle(ctk.CTkFrame):
         bar.grid(row=0, column=0, padx=(0, 10), pady=2, sticky="ns")
         # 标题文字
         lbl = ctk.CTkLabel(self, text=f"{icon}  {text}" if icon else text,
-                           font=ctk.CTkFont(size=16, weight="bold"),
+                           font=ctk.CTkFont(family=_FONT_FAMILY, size=16, weight="bold"),
                            text_color=COLORS["text_primary"])
         lbl.grid(row=0, column=1, sticky="w")
 
@@ -351,12 +361,12 @@ class IPConfigPanel(ctk.CTkFrame):
         adp_frame = ctk.CTkFrame(left, fg_color="transparent")
         adp_frame.pack(fill="x", padx=20, pady=4)
         ctk.CTkLabel(adp_frame, text="网络适配器", width=90,
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]).pack(side="left")
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]).pack(side="left")
         self.adapter_var = ctk.StringVar()
         self.adapters = get_network_adapters()
         self.adapter_combo = ctk.CTkComboBox(adp_frame, values=self.adapters,
                                              variable=self.adapter_var,
-                                             font=ctk.CTkFont(size=13),
+                                             font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                                              command=self._on_adapter_change)
         if self.adapters:
             self.adapter_var.set(self.adapters[0])
@@ -373,10 +383,10 @@ class IPConfigPanel(ctk.CTkFrame):
         for label, attr, placeholder in fields:
             row = ctk.CTkFrame(left, fg_color="transparent")
             row.pack(fill="x", padx=20, pady=4)
-            ctk.CTkLabel(row, text=label, width=90, font=ctk.CTkFont(size=13),
+            ctk.CTkLabel(row, text=label, width=90, font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                          text_color=COLORS["text_secondary"]).pack(side="left")
             entry = ctk.CTkEntry(row, placeholder_text=placeholder,
-                                 font=ctk.CTkFont(size=13), height=36,
+                                 font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=36,
                                  border_color=COLORS["border"])
             entry.pack(side="left", fill="x", expand=True, padx=(8, 0))
             setattr(self, attr, entry)
@@ -387,15 +397,15 @@ class IPConfigPanel(ctk.CTkFrame):
 
         ctk.CTkButton(btn_row, text="📋 读取当前", width=110, height=36,
                       fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                      font=ctk.CTkFont(size=13),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._read_current).pack(side="left", padx=(0, 8))
         ctk.CTkButton(btn_row, text="✅ 应用配置", width=110, height=36,
                       fg_color=COLORS["accent_blue"],
-                      font=ctk.CTkFont(size=13, weight="bold"),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13, weight="bold"),
                       command=self._apply_static).pack(side="left", padx=(0, 8))
         ctk.CTkButton(btn_row, text="🔄 自动获取", width=110, height=36,
                       fg_color=COLORS["accent_green"], hover_color="#27ae60",
-                      font=ctk.CTkFont(size=13),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._apply_dhcp).pack(side="left")
 
         # ── 右列：预设配置 ──
@@ -409,7 +419,7 @@ class IPConfigPanel(ctk.CTkFrame):
         SectionTitle(hdr, "预设配置方案", "⚡").grid(row=0, column=0, sticky="w")
         ctk.CTkButton(hdr, text="＋ 添加方案", width=90, height=30,
                       fg_color=COLORS["accent_purple"], hover_color="#8e44ad",
-                      font=ctk.CTkFont(size=12),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                       command=self._add_profile).grid(row=0, column=1, sticky="e")
 
         # 方案列表滚动区
@@ -442,17 +452,17 @@ class IPConfigPanel(ctk.CTkFrame):
             card = ctk.CTkFrame(stats_row, fg_color=COLORS["bg_card2"], corner_radius=12)
             card.grid(row=0, column=i, padx=6, pady=4, sticky="ew")
             ctk.CTkLabel(card, text=f"{icon} {title}",
-                         font=ctk.CTkFont(size=11), text_color=COLORS["text_secondary"]
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=11), text_color=COLORS["text_secondary"]
                          ).pack(pady=(10, 2))
             lbl = ctk.CTkLabel(card, text="—",
-                                font=ctk.CTkFont(size=14, weight="bold"),
+                                font=ctk.CTkFont(family=_FONT_FAMILY, size=14, weight="bold"),
                                 text_color=COLORS["text_primary"])
             lbl.pack(pady=(0, 10))
             self.info_labels[key] = lbl
 
         ctk.CTkButton(info_card, text="🔍 刷新网络信息", width=140, height=34,
                       fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                      font=ctk.CTkFont(size=13),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._refresh_net_info).pack(pady=(0, 14))
 
         # 初始化
@@ -527,7 +537,7 @@ class IPConfigPanel(ctk.CTkFrame):
         if not profiles:
             ctk.CTkLabel(self.profile_scroll, text='暂无预设方案，点击上方"添加方案"',
                          text_color=COLORS["text_secondary"],
-                         font=ctk.CTkFont(size=12)).pack(pady=20)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=12)).pack(pady=20)
             return
         for i, prof in enumerate(profiles):
             self._make_profile_card(i, prof)
@@ -543,25 +553,25 @@ class IPConfigPanel(ctk.CTkFrame):
         top.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(top, text=prof.get("name", "未命名"),
-                     font=ctk.CTkFont(size=13, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13, weight="bold"),
                      text_color=COLORS["text_primary"]).grid(row=0, column=0, sticky="w")
 
         btn_frame = ctk.CTkFrame(top, fg_color="transparent")
         btn_frame.grid(row=0, column=1, sticky="e")
 
         ctk.CTkButton(btn_frame, text="应用", width=52, height=26,
-                      fg_color=COLORS["accent_blue"], font=ctk.CTkFont(size=11),
+                      fg_color=COLORS["accent_blue"], font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=lambda p=prof: self._apply_profile(p)
                       ).pack(side="left", padx=2)
         ctk.CTkButton(btn_frame, text="删除", width=52, height=26,
                       fg_color=COLORS["accent_red"], hover_color="#c0392b",
-                      font=ctk.CTkFont(size=11),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=lambda i=idx: self._delete_profile(i)
                       ).pack(side="left", padx=2)
 
         info = (f"IP: {prof.get('ip','')}  掩码: {prof.get('mask','')}  "
                 f"网关: {prof.get('gateway','')}  DNS: {prof.get('dns1','')}")
-        ctk.CTkLabel(card, text=info, font=ctk.CTkFont(size=11),
+        ctk.CTkLabel(card, text=info, font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                      text_color=COLORS["text_secondary"]).pack(anchor="w", padx=14, pady=(0, 10))
 
     def _apply_profile(self, prof):
@@ -657,7 +667,7 @@ class InstallPanel(ctk.CTkFrame):
 
         ctk.CTkButton(toolbar, text="＋ 添加软件", width=100, height=34,
                       fg_color=COLORS["accent_purple"], hover_color="#8e44ad",
-                      font=ctk.CTkFont(size=13),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._add_package).grid(row=0, column=1, padx=8)
 
         # 搜索框
@@ -665,22 +675,22 @@ class InstallPanel(ctk.CTkFrame):
         self.search_var.trace_add("write", self._on_search)
         search = ctk.CTkEntry(toolbar, textvariable=self.search_var,
                               placeholder_text="🔍  搜索软件...",
-                              font=ctk.CTkFont(size=13), height=34,
+                              font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34,
                               border_color=COLORS["border"])
         search.grid(row=0, column=2, padx=(0, 8), sticky="ew")
 
         # 批量操作
         ctk.CTkButton(toolbar, text="☑ 全选", width=70, height=34,
                       fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                      font=ctk.CTkFont(size=12),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                       command=self._select_all).grid(row=0, column=3, padx=4)
         ctk.CTkButton(toolbar, text="☐ 全取消", width=80, height=34,
                       fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                      font=ctk.CTkFont(size=12),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                       command=self._select_none).grid(row=0, column=4, padx=4)
         ctk.CTkButton(toolbar, text="▶ 安装选中", width=100, height=34,
                       fg_color=COLORS["accent_green"], hover_color="#27ae60",
-                      font=ctk.CTkFont(size=13, weight="bold"),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13, weight="bold"),
                       command=self._install_selected).grid(row=0, column=5, padx=(4, 20))
 
         # ── 软件包网格 ──
@@ -702,7 +712,7 @@ class InstallPanel(ctk.CTkFrame):
         SectionTitle(hdr, "安装进度", "⚙").grid(row=0, column=0, sticky="w")
         ctk.CTkButton(hdr, text="清空日志", width=80, height=28,
                       fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                      font=ctk.CTkFont(size=11),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=lambda: self.log.clear()
                       ).grid(row=0, column=1, sticky="e")
 
@@ -712,7 +722,7 @@ class InstallPanel(ctk.CTkFrame):
         self.progress_bar.set(0)
 
         self.progress_label = ctk.CTkLabel(progress_card, text="就绪",
-                                            font=ctk.CTkFont(size=12),
+                                            font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                                             text_color=COLORS["text_secondary"])
         self.progress_label.pack(anchor="w", padx=20, pady=(0, 14))
 
@@ -729,7 +739,7 @@ class InstallPanel(ctk.CTkFrame):
             ctk.CTkLabel(self.pkg_scroll,
                          text='暂无软件包，点击"添加软件"进行配置' if not filter_text else "没有匹配的软件",
                          text_color=COLORS["text_secondary"],
-                         font=ctk.CTkFont(size=13)).pack(pady=30)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13)).pack(pady=30)
             return
 
         # 每行3列
@@ -752,7 +762,7 @@ class InstallPanel(ctk.CTkFrame):
         top.grid_columnconfigure(0, weight=1)
 
         icon_lbl = ctk.CTkLabel(top, text=pkg.get("icon", "📦"),
-                                 font=ctk.CTkFont(size=28))
+                                 font=ctk.CTkFont(family=_FONT_FAMILY, size=28))
         icon_lbl.grid(row=0, column=0, sticky="w")
 
         cb = ctk.CTkCheckBox(top, text="", variable=var, width=24, height=24,
@@ -762,12 +772,12 @@ class InstallPanel(ctk.CTkFrame):
 
         # 软件名
         ctk.CTkLabel(card, text=pkg.get("name", "未命名"),
-                     font=ctk.CTkFont(size=14, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=14, weight="bold"),
                      text_color=COLORS["text_primary"]).pack(anchor="w", padx=14)
 
         # 描述
         ctk.CTkLabel(card, text=pkg.get("description", ""),
-                     font=ctk.CTkFont(size=11), text_color=COLORS["text_secondary"],
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=11), text_color=COLORS["text_secondary"],
                      wraplength=180).pack(anchor="w", padx=14, pady=(2, 8))
 
         # 路径显示
@@ -775,19 +785,19 @@ class InstallPanel(ctk.CTkFrame):
         if len(path_short) > 30:
             path_short = "..." + path_short[-27:]
         ctk.CTkLabel(card, text=f"📂 {path_short}",
-                     font=ctk.CTkFont(size=10), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=10), text_color=COLORS["text_secondary"]
                      ).pack(anchor="w", padx=14, pady=(0, 6))
 
         # 操作按钮
         btn_row = ctk.CTkFrame(card, fg_color="transparent")
         btn_row.pack(fill="x", padx=10, pady=(0, 12))
 
-        ctk.CTkButton(btn_row, text="立即安装", height=30, font=ctk.CTkFont(size=12),
+        ctk.CTkButton(btn_row, text="立即安装", height=30, font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                       fg_color=COLORS["accent_blue"],
                       command=lambda p=pkg: self._install_one(p)
                       ).pack(side="left", fill="x", expand=True, padx=2)
         ctk.CTkButton(btn_row, text="删除", height=30, width=48,
-                      font=ctk.CTkFont(size=12),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                       fg_color=COLORS["accent_red"], hover_color="#c0392b",
                       command=lambda p=pkg: self._delete_package(p)
                       ).pack(side="left", padx=2)
@@ -889,38 +899,38 @@ class PingPanel(ctk.CTkFrame):
             row=0, column=0, columnspan=4, padx=20, pady=(16, 10), sticky="w")
 
         ctk.CTkLabel(ping_card, text="目标地址",
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).grid(row=1, column=0, padx=(20, 8), pady=8, sticky="w")
         self.ping_entry = ctk.CTkEntry(ping_card, placeholder_text="输入IP或域名，如 8.8.8.8",
-                                       font=ctk.CTkFont(size=13), height=36)
+                                       font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=36)
         self.ping_entry.grid(row=1, column=1, padx=8, pady=8, sticky="ew")
 
         ctk.CTkLabel(ping_card, text="次数",
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).grid(row=1, column=2, padx=8, pady=8)
         self.count_var = ctk.StringVar(value="4")
         ctk.CTkEntry(ping_card, textvariable=self.count_var, width=60,
-                     font=ctk.CTkFont(size=13), height=36
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=36
                      ).grid(row=1, column=3, padx=8, pady=8)
 
         ctk.CTkButton(ping_card, text="▶ Ping", width=80, height=36,
-                      fg_color=COLORS["accent_blue"], font=ctk.CTkFont(size=13),
+                      fg_color=COLORS["accent_blue"], font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._do_ping).grid(row=1, column=4, padx=(8, 8), pady=8)
         ctk.CTkButton(ping_card, text="路由追踪", width=90, height=36,
                       fg_color=COLORS["accent_orange"], hover_color="#e67e22",
-                      font=ctk.CTkFont(size=13),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._do_tracert).grid(row=1, column=5, padx=(0, 20), pady=8)
 
         # 常用检测目标
         quick_frame = ctk.CTkFrame(ping_card, fg_color="transparent")
         quick_frame.grid(row=2, column=0, columnspan=6, padx=20, pady=(0, 14), sticky="w")
         ctk.CTkLabel(quick_frame, text="快速检测: ",
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left", padx=(0, 4))
         for target in ["114.114.114.114", "8.8.8.8", "www.baidu.com", "www.qq.com"]:
             ctk.CTkButton(quick_frame, text=target, width=130, height=26,
                           fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                          font=ctk.CTkFont(size=11),
+                          font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                           command=lambda t=target: self._quick_ping(t)
                           ).pack(side="left", padx=3)
 
@@ -936,7 +946,7 @@ class PingPanel(ctk.CTkFrame):
         SectionTitle(hdr, "检测结果", "📋").grid(row=0, column=0, sticky="w")
         ctk.CTkButton(hdr, text="清空", width=60, height=28,
                       fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                      font=ctk.CTkFont(size=11),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=self._clear_result).grid(row=0, column=1, sticky="e")
 
         self.result_box = ctk.CTkTextbox(result_card, font=ctk.CTkFont(family="Consolas", size=12),
@@ -953,20 +963,20 @@ class PingPanel(ctk.CTkFrame):
             row=0, column=0, columnspan=5, padx=20, pady=(14, 8), sticky="w")
 
         ctk.CTkLabel(port_card, text="主机",
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).grid(row=1, column=0, padx=(20, 8))
         self.port_host = ctk.CTkEntry(port_card, placeholder_text="192.168.1.1",
-                                       font=ctk.CTkFont(size=13), height=34)
+                                       font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34)
         self.port_host.grid(row=1, column=1, padx=8, sticky="ew")
 
         ctk.CTkLabel(port_card, text="端口",
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).grid(row=1, column=2, padx=8)
         self.port_num = ctk.CTkEntry(port_card, placeholder_text="80",
-                                      font=ctk.CTkFont(size=13), height=34, width=80)
+                                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34, width=80)
         self.port_num.grid(row=1, column=3, padx=8)
         ctk.CTkButton(port_card, text="检测", width=70, height=34,
-                      fg_color=COLORS["accent_purple"], font=ctk.CTkFont(size=13),
+                      fg_color=COLORS["accent_purple"], font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._check_port
                       ).grid(row=1, column=4, padx=(8, 20), pady=10)
 
@@ -1087,18 +1097,18 @@ class ProxyPanel(ctk.CTkFrame):
             row=0, column=0, columnspan=3, padx=20, pady=(14, 8), sticky="w")
 
         self.status_label = ctk.CTkLabel(
-            status_card, text="检测中...", font=ctk.CTkFont(size=13, weight="bold"),
+            status_card, text="检测中...", font=ctk.CTkFont(family=_FONT_FAMILY, size=13, weight="bold"),
             text_color=COLORS["text_secondary"])
         self.status_label.grid(row=1, column=0, padx=20, pady=(0, 4), sticky="w")
 
         self.addr_label = ctk.CTkLabel(
-            status_card, text="—", font=ctk.CTkFont(size=12),
+            status_card, text="—", font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
             text_color=COLORS["text_secondary"])
         self.addr_label.grid(row=2, column=0, padx=20, pady=(0, 14), sticky="w")
 
         ctk.CTkButton(status_card, text="🔄 刷新状态", width=100, height=32,
                       fg_color=COLORS["bg_card2"], hover_color=COLORS["hover"],
-                      font=ctk.CTkFont(size=12),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                       command=self._load_current).grid(row=0, column=2, rowspan=3,
                                                     padx=20, pady=14)
 
@@ -1120,38 +1130,38 @@ class ProxyPanel(ctk.CTkFrame):
         http_row = ctk.CTkFrame(left, fg_color="transparent")
         http_row.pack(fill="x", padx=20, pady=4)
         ctk.CTkLabel(http_row, text="HTTP 代理", width=90,
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         self.http_addr_entry = ctk.CTkEntry(http_row, placeholder_text="地址 如 192.168.1.100",
-                                              font=ctk.CTkFont(size=13), height=34)
+                                              font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34)
         self.http_addr_entry.pack(side="left", fill="x", expand=True, padx=(8, 4))
         ctk.CTkLabel(http_row, text="端口",
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"],
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"],
                      width=30).pack(side="left")
         self.http_port_entry = ctk.CTkEntry(http_row, placeholder_text="8080",
-                                              font=ctk.CTkFont(size=13), height=34, width=70)
+                                              font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34, width=70)
         self.http_port_entry.pack(side="left")
 
         # HTTPS 代理（地址 + 端口）
         https_row = ctk.CTkFrame(left, fg_color="transparent")
         https_row.pack(fill="x", padx=20, pady=4)
         ctk.CTkLabel(https_row, text="HTTPS 代理", width=90,
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         self.https_addr_entry = ctk.CTkEntry(https_row, placeholder_text="留空则同 HTTP",
-                                               font=ctk.CTkFont(size=13), height=34)
+                                               font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34)
         self.https_addr_entry.pack(side="left", fill="x", expand=True, padx=(8, 4))
         ctk.CTkLabel(https_row, text="端口",
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"],
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"],
                      width=30).pack(side="left")
         self.https_port_entry = ctk.CTkEntry(https_row, placeholder_text="8080",
-                                               font=ctk.CTkFont(size=13), height=34, width=70)
+                                               font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34, width=70)
         self.https_port_entry.pack(side="left")
 
         cb_row = ctk.CTkFrame(left, fg_color="transparent")
         cb_row.pack(fill="x", padx=20, pady=(0, 4))
         ctk.CTkCheckBox(cb_row, text="HTTPS 使用与 HTTP 相同地址和端口", variable=self.same_as_http,
-                        font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"],
+                        font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"],
                         fg_color=COLORS["accent_blue"]
                         ).pack(anchor="w")
 
@@ -1159,31 +1169,31 @@ class ProxyPanel(ctk.CTkFrame):
         socks_row = ctk.CTkFrame(left, fg_color="transparent")
         socks_row.pack(fill="x", padx=20, pady=4)
         ctk.CTkLabel(socks_row, text="SOCKS 代理", width=90,
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         self.socks_addr_entry = ctk.CTkEntry(socks_row, placeholder_text="地址 如 127.0.0.1",
-                                               font=ctk.CTkFont(size=13), height=34)
+                                               font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34)
         self.socks_addr_entry.pack(side="left", fill="x", expand=True, padx=(8, 4))
         ctk.CTkLabel(socks_row, text="端口",
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"],
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"],
                      width=30).pack(side="left")
         self.socks_port_entry = ctk.CTkEntry(socks_row, placeholder_text="1080",
-                                               font=ctk.CTkFont(size=13), height=34, width=70)
+                                               font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34, width=70)
         self.socks_port_entry.pack(side="left")
 
         # 绕过列表
         row4 = ctk.CTkFrame(left, fg_color="transparent")
         row4.pack(fill="x", padx=20, pady=(8, 4))
         ctk.CTkLabel(row4, text="绕过列表", width=90,
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         ctk.CTkLabel(row4, text="（分号分隔）",
-                     font=ctk.CTkFont(size=11), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=11), text_color=COLORS["text_secondary"]
                      ).pack(side="left", padx=(4, 0))
 
         self.bypass_entry = ctk.CTkEntry(left,
                                          placeholder_text="localhost;127.0.0.1;<local>",
-                                         font=ctk.CTkFont(size=12), height=32)
+                                         font=ctk.CTkFont(family=_FONT_FAMILY, size=12), height=32)
         self.bypass_entry.pack(fill="x", padx=20, pady=(0, 10))
 
         # 操作按钮
@@ -1191,11 +1201,11 @@ class ProxyPanel(ctk.CTkFrame):
         btn_row.pack(fill="x", padx=20, pady=(4, 16))
         ctk.CTkButton(btn_row, text="✅ 应用代理", width=120, height=36,
                       fg_color=COLORS["accent_blue"], hover_color="#3a7de8",
-                      font=ctk.CTkFont(size=13, weight="bold"),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13, weight="bold"),
                       command=self._apply_proxy).pack(side="left", padx=(0, 8))
         ctk.CTkButton(btn_row, text="❌ 关闭代理", width=120, height=36,
                       fg_color=COLORS["accent_red"], hover_color="#c0392b",
-                      font=ctk.CTkFont(size=13),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                       command=self._disable_proxy).pack(side="left")
 
         # ── 右列：预设方案 ──
@@ -1209,7 +1219,7 @@ class ProxyPanel(ctk.CTkFrame):
         SectionTitle(hdr, "预设代理方案", "⚡").grid(row=0, column=0, sticky="w")
         ctk.CTkButton(hdr, text="＋ 添加", width=70, height=28,
                       fg_color=COLORS["accent_purple"], hover_color="#8e44ad",
-                      font=ctk.CTkFont(size=11),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=self._add_profile).grid(row=0, column=1)
 
         self.proxy_profile_scroll = ctk.CTkScrollableFrame(
@@ -1307,7 +1317,7 @@ class ProxyPanel(ctk.CTkFrame):
             ctk.CTkLabel(self.proxy_profile_scroll,
                          text='暂无预设方案，点击上方"添加"',
                          text_color=COLORS["text_secondary"],
-                         font=ctk.CTkFont(size=12)).pack(pady=20)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=12)).pack(pady=20)
             return
         for i, prof in enumerate(profiles):
             self._make_proxy_profile_card(i, prof)
@@ -1324,19 +1334,19 @@ class ProxyPanel(ctk.CTkFrame):
 
         name = prof.get("name", "未命名")
         ctk.CTkLabel(top, text=name,
-                     font=ctk.CTkFont(size=13, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13, weight="bold"),
                      text_color=COLORS["text_primary"]
                      ).grid(row=0, column=0, sticky="w")
 
         btns = ctk.CTkFrame(top, fg_color="transparent")
         btns.grid(row=0, column=1, sticky="e")
         ctk.CTkButton(btns, text="应用", width=52, height=26,
-                      fg_color=COLORS["accent_blue"], font=ctk.CTkFont(size=11),
+                      fg_color=COLORS["accent_blue"], font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=lambda p=prof: self._apply_profile(p)
                       ).pack(side="left", padx=2)
         ctk.CTkButton(btns, text="删除", width=52, height=26,
                       fg_color=COLORS["accent_red"], hover_color="#c0392b",
-                      font=ctk.CTkFont(size=11),
+                      font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                       command=lambda i=idx: self._delete_proxy_profile(i)
                       ).pack(side="left", padx=2)
 
@@ -1350,7 +1360,7 @@ class ProxyPanel(ctk.CTkFrame):
         info_str = "  ".join(info_parts) if info_parts else "无代理地址"
 
         ctk.CTkLabel(card, text=info_str,
-                     font=ctk.CTkFont(size=11),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                      text_color=COLORS["text_secondary"]
                      ).grid(row=1, column=0, padx=14, pady=(0, 10), sticky="w")
 
@@ -1419,7 +1429,7 @@ class ProfileDialog(BaseDialog):
 
     def _build(self):
         ctk.CTkLabel(self, text="➕ 添加 IP 预设方案",
-                     font=ctk.CTkFont(size=16, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=16, weight="bold"),
                      text_color=COLORS["text_primary"]).pack(pady=(24, 16))
 
         fields = [
@@ -1435,10 +1445,10 @@ class ProfileDialog(BaseDialog):
             row = ctk.CTkFrame(self, fg_color="transparent")
             row.pack(fill="x", padx=30, pady=4)
             ctk.CTkLabel(row, text=label, width=80,
-                         font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                          ).pack(side="left")
             e = ctk.CTkEntry(row, placeholder_text=placeholder,
-                              font=ctk.CTkFont(size=13), height=34)
+                              font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34)
             e.pack(side="left", fill="x", expand=True, padx=(8, 0))
             self.entries[key] = e
 
@@ -1468,7 +1478,7 @@ class PackageDialog(BaseDialog):
 
     def _build(self):
         ctk.CTkLabel(self, text="📦 添加软件包",
-                     font=ctk.CTkFont(size=16, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=16, weight="bold"),
                      text_color=COLORS["text_primary"]).pack(pady=(24, 16))
 
         fields = [
@@ -1482,10 +1492,10 @@ class PackageDialog(BaseDialog):
             row = ctk.CTkFrame(self, fg_color="transparent")
             row.pack(fill="x", padx=30, pady=5)
             ctk.CTkLabel(row, text=label, width=80,
-                         font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                          ).pack(side="left")
             e = ctk.CTkEntry(row, placeholder_text=placeholder,
-                              font=ctk.CTkFont(size=13), height=34)
+                              font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34)
             e.pack(side="left", fill="x", expand=True, padx=(8, 0))
             self.entries[key] = e
 
@@ -1493,10 +1503,10 @@ class PackageDialog(BaseDialog):
         path_row = ctk.CTkFrame(self, fg_color="transparent")
         path_row.pack(fill="x", padx=30, pady=5)
         ctk.CTkLabel(path_row, text="安装包路径", width=80,
-                     font=ctk.CTkFont(size=13), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         self.path_entry = ctk.CTkEntry(path_row, placeholder_text="C:\\Installers\\setup.exe",
-                                        font=ctk.CTkFont(size=12), height=34)
+                                        font=ctk.CTkFont(family=_FONT_FAMILY, size=12), height=34)
         self.path_entry.pack(side="left", fill="x", expand=True, padx=(8, 0))
         ctk.CTkButton(path_row, text="📂", width=36, height=34,
                       fg_color=COLORS["bg_card2"],
@@ -1539,7 +1549,7 @@ class ProxyProfileDialog(BaseDialog):
 
     def _build(self):
         ctk.CTkLabel(self, text="➕ 添加代理预设方案",
-                     font=ctk.CTkFont(size=16, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=16, weight="bold"),
                      text_color=COLORS["text_primary"]).pack(pady=(24, 16))
 
         self.entries = {}
@@ -1548,74 +1558,74 @@ class ProxyProfileDialog(BaseDialog):
         row = ctk.CTkFrame(self, fg_color="transparent")
         row.pack(fill="x", padx=30, pady=4)
         ctk.CTkLabel(row, text="方案名称", width=80,
-                     font=ctk.CTkFont(size=13),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=13),
                      text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(row, placeholder_text="如: 公司代理",
-                         font=ctk.CTkFont(size=13), height=34)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=34)
         e.pack(side="left", fill="x", expand=True, padx=(8, 0))
         self.entries["name"] = e
 
         # HTTP 代理（地址 + 端口）
-        ctk.CTkLabel(self, text="HTTP 代理", font=ctk.CTkFont(size=12),
+        ctk.CTkLabel(self, text="HTTP 代理", font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                      text_color=COLORS["accent_blue"],
                      anchor="w").pack(fill="x", padx=34, pady=(10, 2))
         http_row = ctk.CTkFrame(self, fg_color="transparent")
         http_row.pack(fill="x", padx=30, pady=2)
         ctk.CTkLabel(http_row, text="地址", width=40,
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(http_row, placeholder_text="192.168.1.100",
-                         font=ctk.CTkFont(size=13), height=32)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=32)
         e.pack(side="left", fill="x", expand=True, padx=(4, 6))
         self.entries["http_addr"] = e
         ctk.CTkLabel(http_row, text="端口", width=30,
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(http_row, placeholder_text="8080",
-                         font=ctk.CTkFont(size=13), height=32, width=70)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=32, width=70)
         e.pack(side="left")
         self.entries["http_port"] = e
 
         # HTTPS 代理（地址 + 端口）
-        ctk.CTkLabel(self, text="HTTPS 代理", font=ctk.CTkFont(size=12),
+        ctk.CTkLabel(self, text="HTTPS 代理", font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                      text_color=COLORS["accent_blue"],
                      anchor="w").pack(fill="x", padx=34, pady=(8, 2))
         https_row = ctk.CTkFrame(self, fg_color="transparent")
         https_row.pack(fill="x", padx=30, pady=2)
         ctk.CTkLabel(https_row, text="地址", width=40,
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(https_row, placeholder_text="留空则同 HTTP",
-                         font=ctk.CTkFont(size=13), height=32)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=32)
         e.pack(side="left", fill="x", expand=True, padx=(4, 6))
         self.entries["https_addr"] = e
         ctk.CTkLabel(https_row, text="端口", width=30,
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(https_row, placeholder_text="8080",
-                         font=ctk.CTkFont(size=13), height=32, width=70)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=32, width=70)
         e.pack(side="left")
         self.entries["https_port"] = e
 
         # SOCKS 代理（地址 + 端口）
-        ctk.CTkLabel(self, text="SOCKS 代理", font=ctk.CTkFont(size=12),
+        ctk.CTkLabel(self, text="SOCKS 代理", font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                      text_color=COLORS["accent_blue"],
                      anchor="w").pack(fill="x", padx=34, pady=(8, 2))
         socks_row = ctk.CTkFrame(self, fg_color="transparent")
         socks_row.pack(fill="x", padx=30, pady=2)
         ctk.CTkLabel(socks_row, text="地址", width=40,
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(socks_row, placeholder_text="127.0.0.1",
-                         font=ctk.CTkFont(size=13), height=32)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=32)
         e.pack(side="left", fill="x", expand=True, padx=(4, 6))
         self.entries["socks_addr"] = e
         ctk.CTkLabel(socks_row, text="端口", width=30,
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(socks_row, placeholder_text="1080",
-                         font=ctk.CTkFont(size=13), height=32, width=70)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=13), height=32, width=70)
         e.pack(side="left")
         self.entries["socks_port"] = e
 
@@ -1623,11 +1633,11 @@ class ProxyProfileDialog(BaseDialog):
         bypass_row = ctk.CTkFrame(self, fg_color="transparent")
         bypass_row.pack(fill="x", padx=30, pady=(10, 2))
         ctk.CTkLabel(bypass_row, text="绕过列表", width=80,
-                     font=ctk.CTkFont(size=12),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                      text_color=COLORS["text_secondary"]
                      ).pack(side="left")
         e = ctk.CTkEntry(bypass_row, placeholder_text="localhost;127.0.0.1;<local>",
-                         font=ctk.CTkFont(size=12), height=30)
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=12), height=30)
         e.pack(side="left", fill="x", expand=True, padx=(8, 0))
         self.entries["bypass"] = e
 
@@ -1739,17 +1749,17 @@ class ToolboxPanel(ctk.CTkFrame):
         hdr.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(hdr, text=f"{tool['icon']}  {tool['title']}",
-                     font=ctk.CTkFont(size=15, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=15, weight="bold"),
                      text_color=COLORS["text_primary"]).grid(row=0, column=0, sticky="w")
         if tool["admin"]:
             ctk.CTkLabel(hdr, text="需管理员",
-                         font=ctk.CTkFont(size=10),
+                         font=ctk.CTkFont(family=_FONT_FAMILY, size=10),
                          text_color=COLORS["accent_orange"]).grid(row=0, column=1, sticky="e")
 
         # 描述
         desc_text = tool["desc"].replace("\n", " | ")
         ctk.CTkLabel(card, text=desc_text,
-                     font=ctk.CTkFont(size=11),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=11),
                      text_color=COLORS["text_secondary"],
                      wraplength=380, justify="left"
                      ).pack(padx=20, pady=(2, 12), anchor="w")
@@ -1759,7 +1769,7 @@ class ToolboxPanel(ctk.CTkFrame):
                             width=100, height=34,
                             fg_color=tool["color"],
                             hover_color=self._darken(tool["color"]),
-                            font=ctk.CTkFont(size=12, weight="bold"),
+                            font=ctk.CTkFont(family=_FONT_FAMILY, size=12, weight="bold"),
                             command=tool["cmd"])
         btn.pack(padx=20, pady=(0, 16), anchor="e")
 
@@ -1958,6 +1968,9 @@ class NetAdminApp(ctk.CTk):
         super().__init__()
         self.config_data = load_config()
 
+        # ── 全局设置默认字体（解决跨机器字体不一致问题） ──
+        self._setup_fonts()
+
         # ── 窗口设置 ──
         self.title("NetAdmin Pro  |  网络管理员工具")
         self.geometry("1280x820")
@@ -1974,6 +1987,22 @@ class NetAdminApp(ctk.CTk):
 
         self._build_ui()
         self._check_admin()
+
+    def _setup_fonts(self):
+        """全局设置字体，确保跨机器中文显示正常"""
+        import tkinter.font as tkfont
+        _families = ("Microsoft YaHei", "微软雅黑", "SimHei", "PingFang SC",
+                      "Segoe UI", "Noto Sans CJK SC",
+                      "WenQuanYi Micro Hei", "Arial")
+        _available = tkfont.families()
+        _chosen = "Arial"
+        for _f in _families:
+            if _f in _available:
+                _chosen = _f
+                break
+        # 更新模块级字体常量
+        global _FONT_FAMILY
+        _FONT_FAMILY = _chosen
 
     def _check_admin(self):
         if not is_admin():
@@ -2000,14 +2029,14 @@ class NetAdminApp(ctk.CTk):
         logo_frame = ctk.CTkFrame(header, fg_color="transparent")
         logo_frame.grid(row=0, column=0, padx=(20, 0), pady=10, sticky="w")
         ctk.CTkLabel(logo_frame, text="🛡",
-                     font=ctk.CTkFont(size=26)).pack(side="left", padx=(0, 8))
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=26)).pack(side="left", padx=(0, 8))
         title_frame = ctk.CTkFrame(logo_frame, fg_color="transparent")
         title_frame.pack(side="left")
         ctk.CTkLabel(title_frame, text="NetAdmin Pro",
-                     font=ctk.CTkFont(size=18, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=18, weight="bold"),
                      text_color=COLORS["text_primary"]).pack(anchor="w")
         ctk.CTkLabel(title_frame, text="网络管理员工具",
-                     font=ctk.CTkFont(size=11), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=11), text_color=COLORS["text_secondary"]
                      ).pack(anchor="w")
 
         # 分隔
@@ -2020,7 +2049,7 @@ class NetAdminApp(ctk.CTk):
         self.status_dot = StatusDot(status_frame)
         self.status_dot.pack(side="left", padx=(0, 6))
         self.admin_label = ctk.CTkLabel(status_frame, text="检测中...",
-                                         font=ctk.CTkFont(size=12),
+                                         font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                                          text_color=COLORS["text_secondary"])
         self.admin_label.pack(side="left")
 
@@ -2031,12 +2060,12 @@ class NetAdminApp(ctk.CTk):
         if not is_admin():
             ctk.CTkButton(right_btns, text="🔓 提升权限", width=100, height=32,
                           fg_color=COLORS["accent_orange"], hover_color="#d68910",
-                          font=ctk.CTkFont(size=12),
+                          font=ctk.CTkFont(family=_FONT_FAMILY, size=12),
                           command=lambda: [run_as_admin(), self.destroy()]
                           ).pack(side="left", padx=4)
 
         ctk.CTkLabel(right_btns, text=datetime.now().strftime("%Y-%m-%d"),
-                     font=ctk.CTkFont(size=12), text_color=COLORS["text_secondary"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=12), text_color=COLORS["text_secondary"]
                      ).pack(side="left", padx=10)
 
         # ══ 主体区域: 左侧导航 + 右侧内容 ══
@@ -2053,7 +2082,7 @@ class NetAdminApp(ctk.CTk):
         nav.grid_rowconfigure(10, weight=1)
 
         ctk.CTkLabel(nav, text="功能菜单",
-                     font=ctk.CTkFont(size=11, weight="bold"),
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=11, weight="bold"),
                      text_color=COLORS["text_secondary"]).pack(pady=(24, 8), padx=20, anchor="w")
 
         self.nav_buttons = []
@@ -2067,7 +2096,7 @@ class NetAdminApp(ctk.CTk):
         ]
         for label, idx in nav_items:
             btn = ctk.CTkButton(nav, text=label, anchor="w", height=44, width=180,
-                                font=ctk.CTkFont(size=14),
+                                font=ctk.CTkFont(family=_FONT_FAMILY, size=14),
                                 fg_color="transparent",
                                 text_color=COLORS["text_secondary"],
                                 hover_color=COLORS["hover"],
@@ -2077,7 +2106,7 @@ class NetAdminApp(ctk.CTk):
 
         # 底部版本信息
         ctk.CTkLabel(nav, text="v1.0.0  NetAdmin Pro",
-                     font=ctk.CTkFont(size=10), text_color=COLORS["border"]
+                     font=ctk.CTkFont(family=_FONT_FAMILY, size=10), text_color=COLORS["border"]
                      ).pack(side="bottom", pady=16)
 
         # ── 右侧内容区 ──
